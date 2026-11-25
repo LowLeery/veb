@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 import net
 import net.http
@@ -73,19 +73,19 @@ pub fn new_app() &App {
 // Sunucuyu başlat
 pub fn (mut app App) run(port int) {
     println('Server starting on http://localhost:${port}')
-    
+
     // Global middleware'leri ekle
     app.use(logging_middleware)
-    
+
     mut server := net.listen_tcp(.ip, 'localhost:${port}', net.ListenOptions{}) or {
         panic('Failed to start server: ${err}')
     }
-    
+
     for {
         mut conn := server.accept() or {
             continue
         }
-        
+
         go handle_connection(mut conn, mut app)
     }
 }
@@ -95,30 +95,30 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
     defer {
         conn.close() or {}
     }
-    
+
     // Request'i oku
     mut buf := []u8{len: 4096}
     n := conn.read(mut buf) or { return }
     if n == 0 { return }
-    
+
     request_str := buf[..n].bytestr()
     lines := request_str.split('\n')
     if lines.len == 0 { return }
-    
+
     // Request satırını parse et
     request_line := lines[0].trim_space()
     parts := request_line.split(' ')
     if parts.len != 3 { return }
-    
+
     method_str := parts[0]
     mut path := parts[1]
-    
+
     // Query parametrelerini parse et
     mut query := map[string]string{}
     if query_start := path.index('?') {
         query_str := path[query_start + 1..]
         path = path[..query_start]
-        
+
         for param in query_str.split('&') {
             param_parts := param.split('=')
             if param_parts.len == 2 {
@@ -126,7 +126,7 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
             }
         }
     }
-    
+
     // Method string'ini http.Method'a çevir
     method := match method_str {
         'GET' { http.Method.get }
@@ -135,19 +135,19 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
         'DELETE' { http.Method.delete }
         else { http.Method.get }
     }
-    
+
     // Header'ları oku ve content length'i bul
     mut headers := http.new_header()
     mut content_length := 0
     mut body_start := 0
-    
+
     for i := 1; i < lines.len; i++ {
         line := lines[i].trim_space()
-        if line == '' { 
+        if line == '' {
             body_start = i + 1
-            break 
+            break
         }
-        
+
         header_parts := line.split(': ')
         if header_parts.len == 2 {
             headers.add_custom(header_parts[0], header_parts[1]) or {}
@@ -156,13 +156,13 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
             }
         }
     }
-    
+
     // Body'yi oku
     mut body := ''
     if content_length > 0 && body_start < lines.len {
         body = lines[body_start..].join('\n')
     }
-    
+
     // Context oluştur
     mut ctx := Context{
         req: http.Request{
@@ -182,20 +182,20 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
         json_body: body
         app: app
     }
-    
+
     // Route'u bul ve işle
     mut found := false
     for route in app.routes {
         route_parts := route.path.split('/')
         path_parts := path.split('/')
-        
+
         if route_parts.len != path_parts.len {
             continue
         }
-        
+
         mut matches := true
         mut params := map[string]string{}
-        
+
         for i := 0; i < route_parts.len; i++ {
             if route_parts[i].starts_with(':') {
                 param_name := route_parts[i][1..]
@@ -205,7 +205,7 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
                 break
             }
         }
-        
+
         if matches && route.method == method {
             for middleware in app.middleware {
                 if !middleware.is_global {
@@ -214,9 +214,9 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
                     }
                 }
             }
-            
+
             ctx.params = params.clone()
-            
+
             if handler := route.handler {
                 if ctx.next() {
                     result := handler(mut ctx)
@@ -227,7 +227,7 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
             }
         }
     }
-    
+
     if !found {
         ctx.status = 404
         write_response(mut conn, ctx, 'Not Found')
@@ -237,23 +237,23 @@ fn handle_connection(mut conn net.TcpConn, mut app App) {
 // Yanıt yaz
 fn write_response(mut conn net.TcpConn, ctx Context, result Result) {
     mut response := strings.new_builder(1024)
-    
+
     response.write_string('HTTP/1.1 ${ctx.status} ${get_status_text(ctx.status)}\r\n')
-    
+
     for key, value in ctx.headers {
         response.write_string('${key}: ${value}\r\n')
     }
-    
+
     body := match result {
         string { result }
         map[string]string { '{"error": "JSON serialization not implemented yet"}' }
         else { result.str() }
     }
-    
+
     response.write_string('Content-Length: ${body.len}\r\n')
     response.write_string('\r\n')
     response.write_string(body)
-    
+
     conn.write_string(response.str()) or {}
 }
 
@@ -320,10 +320,10 @@ pub fn (mut ctx Context) next() bool {
     if ctx.middleware_index >= ctx.middleware_chain.len {
         return true
     }
-    
+
     current_middleware := ctx.middleware_chain[ctx.middleware_index]
     ctx.middleware_index++
-    
+
     return current_middleware(mut ctx)
 }
 
@@ -332,16 +332,16 @@ pub fn logging_middleware(mut ctx Context) bool {
     if ctx.start_time == time.Time{} {
         ctx.start_time = time.now()
     }
-    
+
     if ctx.middleware_index == 0 {
         println('${time.now().format()} | ${ctx.method} ${ctx.path} | Started')
     }
-    
+
     if ctx.middleware_index == ctx.middleware_chain.len {
         duration := time.since(ctx.start_time)
         println('${time.now().format()} | ${ctx.method} ${ctx.path} | Completed in ${duration.milliseconds()}ms | Status: ${ctx.status}')
     }
-    
+
     return true
 }
 
@@ -365,4 +365,4 @@ pub fn (mut ctx Context) html(html string) Result {
 
 pub fn (mut ctx Context) status(code int) {
     ctx.status = code
-} 
+}

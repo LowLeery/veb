@@ -1,7 +1,7 @@
 module main
 
 // This file is just to help V recognize the project structure
-// The actual framework code is in vwebx/server.v
+// The actual framework code is in veb/server.v
 fn main() {
-    println('VWebX framework')
-} 
+    println('veb framework')
+}

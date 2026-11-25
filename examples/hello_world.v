@@ -1,24 +1,24 @@
-import vwebx
+import veb
 
 // Uygulama yapısı
 struct HelloApp {
-    vwebx.App
+    veb.App
 }
 
 // Yeni uygulama oluştur
 fn new_app() HelloApp {
     return HelloApp{
-        app: vwebx.new_app()
+        app: veb.new_app()
     }
 }
 
 // Ana sayfa
-fn (mut app HelloApp) index(ctx vwebx.Context) vwebx.Result {
-    template := vwebx.template_from_string('
+fn (mut app HelloApp) index(ctx veb.Context) veb.Result {
+    template := veb.template_from_string('
         <!DOCTYPE html>
         <html>
         <head>
-            <title>VWebX Example</title>
+            <title>veb Example</title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 h1 { color: #333; }
@@ -30,7 +30,7 @@ fn (mut app HelloApp) index(ctx vwebx.Context) vwebx.Result {
         </head>
         <body>
             <div class="container">
-                <h1>Welcome to VWebX!</h1>
+                <h1>Welcome to veb!</h1>
                 <div class="card">
                     <h2>Features</h2>
                     <ul>
@@ -58,63 +58,63 @@ fn (mut app HelloApp) index(ctx vwebx.Context) vwebx.Result {
         </body>
         </html>
     ')
-    
+
     return ctx.html(template.render({}))
 }
 
 // Kullanıcı listesi
-fn (mut app HelloApp) list_users(ctx vwebx.Context) vwebx.Result {
+fn (mut app HelloApp) list_users(ctx veb.Context) veb.Result {
     users := app.db.get_all_users()!
-    return ctx.json(vwebx.json_list(users))
+    return ctx.json(veb.json_list(users))
 }
 
 // Kullanıcı oluştur
-fn (mut app HelloApp) create_user(ctx vwebx.Context) vwebx.Result {
-    user := vwebx.bind_json[vwebx.User](ctx.req.body)!
-    
+fn (mut app HelloApp) create_user(ctx veb.Context) veb.Result {
+    user := veb.bind_json[veb.User](ctx.req.body)!
+
     // Validasyon
     if user.name.len < 2 {
-        return ctx.json(vwebx.json_error('Name must be at least 2 characters', 400))
+        return ctx.json(veb.json_error('Name must be at least 2 characters', 400))
     }
     if user.age < 18 {
-        return ctx.json(vwebx.json_error('Age must be at least 18', 400))
+        return ctx.json(veb.json_error('Age must be at least 18', 400))
     }
-    
+
     // Kullanıcıyı oluştur
     new_user := app.db.create_user(user)!
-    return ctx.json(vwebx.json_success(new_user))
+    return ctx.json(veb.json_success(new_user))
 }
 
 // Kullanıcı getir
-fn (mut app HelloApp) get_user(ctx vwebx.Context) vwebx.Result {
+fn (mut app HelloApp) get_user(ctx veb.Context) veb.Result {
     id := ctx.req.params['id'].int()
     user := app.db.get_user(id)!
-    return ctx.json(vwebx.json_success(user))
+    return ctx.json(veb.json_success(user))
 }
 
 // Kullanıcı güncelle
-fn (mut app HelloApp) update_user(ctx vwebx.Context) vwebx.Result {
+fn (mut app HelloApp) update_user(ctx veb.Context) veb.Result {
     id := ctx.req.params['id'].int()
-    user := vwebx.bind_json[vwebx.User](ctx.req.body)!
-    
+    user := veb.bind_json[veb.User](ctx.req.body)!
+
     // Validasyon
     if user.name.len > 0 && user.name.len < 2 {
-        return ctx.json(vwebx.json_error('Name must be at least 2 characters', 400))
+        return ctx.json(veb.json_error('Name must be at least 2 characters', 400))
     }
     if user.age > 0 && user.age < 18 {
-        return ctx.json(vwebx.json_error('Age must be at least 18', 400))
+        return ctx.json(veb.json_error('Age must be at least 18', 400))
     }
-    
+
     // Kullanıcıyı güncelle
     updated_user := app.db.update_user(id, user)!
-    return ctx.json(vwebx.json_success(updated_user))
+    return ctx.json(veb.json_success(updated_user))
 }
 
 // Kullanıcı sil
-fn (mut app HelloApp) delete_user(ctx vwebx.Context) vwebx.Result {
+fn (mut app HelloApp) delete_user(ctx veb.Context) veb.Result {
     id := ctx.req.params['id'].int()
     app.db.delete_user(id)!
-    return ctx.json(vwebx.json_success({
+    return ctx.json(veb.json_success({
         'message': 'User deleted successfully'
     }))
 }
@@ -122,11 +122,11 @@ fn (mut app HelloApp) delete_user(ctx vwebx.Context) vwebx.Result {
 fn main() {
     // Yeni uygulama oluştur
     mut app := new_app()
-    
+
     // Database'i başlat
-    db := vwebx.init_db()!
+    db := veb.init_db()!
     app.db = db
-    
+
     // Route'ları tanımla
     app.get('/', app.index)
     app.get('/api/users', app.list_users)
@@ -134,8 +134,8 @@ fn main() {
     app.get('/api/users/:id', app.get_user)
     app.put('/api/users/:id', app.update_user)
     app.delete('/api/users/:id', app.delete_user)
-    
+
     // Sunucuyu başlat
     println('Server running at http://localhost:8080')
     app.run(':8080')!
-} 
+}

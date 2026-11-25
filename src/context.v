@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 import net
 import net.http
@@ -55,10 +55,10 @@ pub fn (mut ctx Context) file(path string) !Result {
     if !os.exists(path) {
         return error('File not found: ${path}')
     }
-    
+
     content := os.read_file(path)!
     ext := os.file_ext(path)
-    
+
     mime_type := match ext {
         '.html' { 'text/html' }
         '.css' { 'text/css' }
@@ -73,7 +73,7 @@ pub fn (mut ctx Context) file(path string) !Result {
         '.txt' { 'text/plain' }
         else { 'application/octet-stream' }
     }
-    
+
     ctx.headers['Content-Type'] = mime_type
     ctx.body = content
     return content
@@ -81,7 +81,7 @@ pub fn (mut ctx Context) file(path string) !Result {
 
 pub fn (mut ctx Context) cookie(name string, value string, options CookieOptions) {
     mut cookie := '${name}=${value}'
-    
+
     if options.max_age > 0 {
         cookie += '; Max-Age=${options.max_age}'
     }
@@ -103,7 +103,7 @@ pub fn (mut ctx Context) cookie(name string, value string, options CookieOptions
     if options.same_site != '' {
         cookie += '; SameSite=${options.same_site}'
     }
-    
+
     ctx.headers['Set-Cookie'] = cookie
 }
 
@@ -128,4 +128,4 @@ pub struct CookieOptions {
 // JSON encode helper
 fn json_encode(data any) string {
     return json.encode(data) or { '{"error": "Failed to encode JSON"}' }
-} 
+}

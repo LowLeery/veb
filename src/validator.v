@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 import regex
 import time
@@ -77,7 +77,7 @@ pub fn validate_string(value string, rules StringRules) ValidationResult {
         is_valid: true
         errors: []
     }
-    
+
     // Required kontrolü
     if rules.required && value == '' {
         result.is_valid = false
@@ -87,12 +87,12 @@ pub fn validate_string(value string, rules StringRules) ValidationResult {
         }
         return result
     }
-    
+
     // Boş değer kontrolü
     if value == '' {
         return result
     }
-    
+
     // Uzunluk kontrolü
     if rules.min_len > 0 && value.len < rules.min_len {
         result.is_valid = false
@@ -101,7 +101,7 @@ pub fn validate_string(value string, rules StringRules) ValidationResult {
             message: 'Value is too short (minimum ${rules.min_len} characters)'
         }
     }
-    
+
     if rules.max_len > 0 && value.len > rules.max_len {
         result.is_valid = false
         result.errors << ValidationError{
@@ -109,7 +109,7 @@ pub fn validate_string(value string, rules StringRules) ValidationResult {
             message: 'Value is too long (maximum ${rules.max_len} characters)'
         }
     }
-    
+
     // Pattern kontrolü
     if rules.pattern != '' {
         re := regex.regex_opt(rules.pattern) or { return result }
@@ -121,7 +121,7 @@ pub fn validate_string(value string, rules StringRules) ValidationResult {
             }
         }
     }
-    
+
     // Enum kontrolü
     if rules.enum_values.len > 0 {
         mut found := false
@@ -139,7 +139,7 @@ pub fn validate_string(value string, rules StringRules) ValidationResult {
             }
         }
     }
-    
+
     return result
 }
 
@@ -149,7 +149,7 @@ pub fn validate_number(value f64, rules NumberRules) ValidationResult {
         is_valid: true
         errors: []
     }
-    
+
     // Required kontrolü
     if rules.required && value == 0 {
         result.is_valid = false
@@ -159,12 +159,12 @@ pub fn validate_number(value f64, rules NumberRules) ValidationResult {
         }
         return result
     }
-    
+
     // Boş değer kontrolü
     if value == 0 {
         return result
     }
-    
+
     // Integer kontrolü
     if rules.is_int && value != f64(int(value)) {
         result.is_valid = false
@@ -173,7 +173,7 @@ pub fn validate_number(value f64, rules NumberRules) ValidationResult {
             message: 'Value must be an integer'
         }
     }
-    
+
     // Min/Max kontrolü
     if value < rules.min {
         result.is_valid = false
@@ -182,7 +182,7 @@ pub fn validate_number(value f64, rules NumberRules) ValidationResult {
             message: 'Value is too small (minimum ${rules.min})'
         }
     }
-    
+
     if value > rules.max {
         result.is_valid = false
         result.errors << ValidationError{
@@ -190,7 +190,7 @@ pub fn validate_number(value f64, rules NumberRules) ValidationResult {
             message: 'Value is too large (maximum ${rules.max})'
         }
     }
-    
+
     return result
 }
 
@@ -200,7 +200,7 @@ pub fn validate_date(value time.Time, rules DateRules) ValidationResult {
         is_valid: true
         errors: []
     }
-    
+
     // Required kontrolü
     if rules.required && value == time.Time{} {
         result.is_valid = false
@@ -210,12 +210,12 @@ pub fn validate_date(value time.Time, rules DateRules) ValidationResult {
         }
         return result
     }
-    
+
     // Boş değer kontrolü
     if value == time.Time{} {
         return result
     }
-    
+
     // Min/Max kontrolü
     if rules.min != time.Time{} && value < rules.min {
         result.is_valid = false
@@ -224,7 +224,7 @@ pub fn validate_date(value time.Time, rules DateRules) ValidationResult {
             message: 'Date is too early (minimum ${rules.min.format()})'
         }
     }
-    
+
     if rules.max != time.Time{} && value > rules.max {
         result.is_valid = false
         result.errors << ValidationError{
@@ -232,7 +232,7 @@ pub fn validate_date(value time.Time, rules DateRules) ValidationResult {
             message: 'Date is too late (maximum ${rules.max.format()})'
         }
     }
-    
+
     return result
 }
 
@@ -269,7 +269,7 @@ pub fn validate_password(value string) ValidationResult {
         is_valid: true
         errors: []
     }
-    
+
     if value.len < 8 {
         result.is_valid = false
         result.errors << ValidationError{
@@ -277,12 +277,12 @@ pub fn validate_password(value string) ValidationResult {
             message: 'Password must be at least 8 characters long'
         }
     }
-    
+
     has_upper := regex.regex_opt(r'[A-Z]') or { return result }
     has_lower := regex.regex_opt(r'[a-z]') or { return result }
     has_digit := regex.regex_opt(r'[0-9]') or { return result }
     has_special := regex.regex_opt(r'[!@#$%^&*(),.?":{}|<>]') or { return result }
-    
+
     if !has_upper.matches_string(value) {
         result.is_valid = false
         result.errors << ValidationError{
@@ -290,7 +290,7 @@ pub fn validate_password(value string) ValidationResult {
             message: 'Password must contain at least one uppercase letter'
         }
     }
-    
+
     if !has_lower.matches_string(value) {
         result.is_valid = false
         result.errors << ValidationError{
@@ -298,7 +298,7 @@ pub fn validate_password(value string) ValidationResult {
             message: 'Password must contain at least one lowercase letter'
         }
     }
-    
+
     if !has_digit.matches_string(value) {
         result.is_valid = false
         result.errors << ValidationError{
@@ -306,7 +306,7 @@ pub fn validate_password(value string) ValidationResult {
             message: 'Password must contain at least one number'
         }
     }
-    
+
     if !has_special.matches_string(value) {
         result.is_valid = false
         result.errors << ValidationError{
@@ -314,6 +314,6 @@ pub fn validate_password(value string) ValidationResult {
             message: 'Password must contain at least one special character'
         }
     }
-    
+
     return result
-} 
+}

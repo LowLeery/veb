@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 import db.sqlite
 import time
@@ -20,8 +20,8 @@ pub struct User {
 
 // Database'i başlat
 pub fn init_db() !Database {
-    db := sqlite.connect('vwebx.db')!
-    
+    db := sqlite.connect('veb.db')!
+
     // Users tablosunu oluştur
     db.exec("CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +30,7 @@ pub fn init_db() !Database {
         age INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )")!
-    
+
     return Database{db: db}
 }
 
@@ -41,16 +41,16 @@ pub fn (db Database) create_user(user User) !User {
     if existing.len > 0 {
         return error('Email already exists')
     }
-    
+
     // User'ı ekle
     db.db.exec('INSERT INTO users (name, email, age) VALUES ("${user.name}", "${user.email}", ${user.age})')!
-    
+
     // Eklenen user'ı getir
     row := db.db.exec('SELECT * FROM users WHERE email = "${user.email}"')!
     if row.len == 0 {
         return error('Failed to fetch created user')
     }
-    
+
     return User{
         id: row[0].vals[0].int()
         name: row[0].vals[1]
@@ -65,7 +65,7 @@ pub fn (db Database) get_user(id int) !User {
     if row.len == 0 {
         return error('User not found')
     }
-    
+
     return User{
         id: row[0].vals[0].int()
         name: row[0].vals[1]
@@ -78,7 +78,7 @@ pub fn (db Database) get_user(id int) !User {
 pub fn (db Database) get_all_users() ![]User {
     rows := db.db.exec('SELECT * FROM users ORDER BY created_at DESC')!
     mut users := []User{}
-    
+
     for row in rows {
         users << User{
             id: row.vals[0].int()
@@ -88,7 +88,7 @@ pub fn (db Database) get_all_users() ![]User {
             created_at: time.parse(row.vals[4])!
         }
     }
-    
+
     return users
 }
 
@@ -98,7 +98,7 @@ pub fn (db Database) update_user(id int, user User) !User {
     if existing.len == 0 {
         return error('User not found')
     }
-    
+
     // Email değişiyorsa, yeni email'in başka kullanıcıda olmadığından emin ol
     if user.email != '' {
         email_check := db.db.exec('SELECT id FROM users WHERE email = "${user.email}" AND id != ${id}')!
@@ -106,7 +106,7 @@ pub fn (db Database) update_user(id int, user User) !User {
             return error('Email already exists')
         }
     }
-    
+
     // Güncelleme sorgusunu oluştur
     mut updates := []string{}
     if user.name != '' {
@@ -118,15 +118,15 @@ pub fn (db Database) update_user(id int, user User) !User {
     if user.age > 0 {
         updates << 'age = ${user.age}'
     }
-    
+
     if updates.len == 0 {
         return error('No fields to update')
     }
-    
+
     // Güncelleme sorgusunu çalıştır
     update_query := 'UPDATE users SET ${updates.join(', ')} WHERE id = ${id}'
     db.db.exec(update_query)!
-    
+
     // Güncellenmiş kullanıcıyı getir
     return db.get_user(id)
 }
@@ -137,7 +137,7 @@ pub fn (db Database) delete_user(id int) ! {
     if existing.len == 0 {
         return error('User not found')
     }
-    
+
     // Kullanıcıyı sil
     db.db.exec('DELETE FROM users WHERE id = ${id}')!
-} 
+}

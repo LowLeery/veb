@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 // HTTP hata kodları
 pub const (
@@ -141,4 +141,4 @@ pub struct FileError {
 
 pub fn (err FileError) str() string {
     return 'File error during ${err.operation} on ${err.path}: ${err.message}'
-} 
+}

@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 import os
 import json
@@ -78,7 +78,7 @@ pub fn default_config() Config {
             driver: 'sqlite'
             host: 'localhost'
             port: 0
-            name: 'vwebx.db'
+            name: 'veb.db'
             user: ''
             password: ''
             max_connections: 10
@@ -123,57 +123,57 @@ pub fn load_config(path string) !Config {
     if !os.exists(path) {
         return error('Config file not found: ${path}')
     }
-    
+
     content := os.read_file(path)!
     mut config := default_config()
-    
+
     json.decode(Config, content) or { return error('Invalid config file: ${err}') }
-    
+
     return config
 }
 
 // Konfigürasyonu environment variables'dan yükle
 pub fn load_config_from_env() Config {
     mut config := default_config()
-    
-    if host := os.getenv('VWEBX_HOST') {
+
+    if host := os.getenv('VEB_HOST') {
         config.host = host
     }
-    if port := os.getenv('VWEBX_PORT') {
+    if port := os.getenv('VEB_PORT') {
         config.port = port.int()
     }
-    if env := os.getenv('VWEBX_ENV') {
+    if env := os.getenv('VEB_ENV') {
         config.env = env
     }
-    if debug := os.getenv('VWEBX_DEBUG') {
+    if debug := os.getenv('VEB_DEBUG') {
         config.debug = debug == 'true'
     }
-    
+
     // Database
-    if db_host := os.getenv('VWEBX_DB_HOST') {
+    if db_host := os.getenv('VEB_DB_HOST') {
         config.database.host = db_host
     }
-    if db_port := os.getenv('VWEBX_DB_PORT') {
+    if db_port := os.getenv('VEB_DB_PORT') {
         config.database.port = db_port.int()
     }
-    if db_name := os.getenv('VWEBX_DB_NAME') {
+    if db_name := os.getenv('VEB_DB_NAME') {
         config.database.name = db_name
     }
-    if db_user := os.getenv('VWEBX_DB_USER') {
+    if db_user := os.getenv('VEB_DB_USER') {
         config.database.user = db_user
     }
-    if db_pass := os.getenv('VWEBX_DB_PASS') {
+    if db_pass := os.getenv('VEB_DB_PASS') {
         config.database.password = db_pass
     }
-    
+
     // Security
-    if secret_key := os.getenv('VWEBX_SECRET_KEY') {
+    if secret_key := os.getenv('VEB_SECRET_KEY') {
         config.security.secret_key = secret_key
     }
-    if token_lifetime := os.getenv('VWEBX_TOKEN_LIFETIME') {
+    if token_lifetime := os.getenv('VEB_TOKEN_LIFETIME') {
         config.security.token_lifetime = token_lifetime.int()
     }
-    
+
     return config
 }
 
@@ -189,7 +189,7 @@ pub fn (config Config) validate() ! {
     if config.port < 1 || config.port > 65535 {
         return error('Invalid port number: ${config.port}')
     }
-    
+
     // Database kontrolü
     if config.database.driver == '' {
         return error('Database driver is required')
@@ -197,7 +197,7 @@ pub fn (config Config) validate() ! {
     if config.database.name == '' {
         return error('Database name is required')
     }
-    
+
     // Security kontrolü
     if config.security.secret_key == '' {
         return error('Secret key is required')
@@ -205,9 +205,9 @@ pub fn (config Config) validate() ! {
     if config.security.token_lifetime < 1 {
         return error('Token lifetime must be positive')
     }
-    
+
     // Static dosya kontrolü
     if config.static.enabled && !os.exists(config.static.directory) {
         return error('Static directory not found: ${config.static.directory}')
     }
-} 
+}

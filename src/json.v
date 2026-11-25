@@ -1,4 +1,4 @@
-module vwebx
+module veb
 
 import json
 
@@ -41,4 +41,4 @@ pub fn json_paginated[T](items []T, page int, per_page int, total int) string {
         'total': total
         'total_pages': (total + per_page - 1) / per_page
     }) or { '{"error": "Failed to encode JSON"}' }
-} 
+}
